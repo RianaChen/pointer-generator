@@ -17,6 +17,7 @@
 """This file contains code to build and run the tensorflow graph for the sequence-to-sequence model"""
 
 import os
+import sys
 import time
 import numpy as np
 import tensorflow as tf
@@ -180,6 +181,12 @@ class SummarizationModel(object):
       # Note that for decoder timesteps and examples corresponding to a [PAD] token, this is junk - ignore.
       final_dists = [vocab_dist + copy_dist for (vocab_dist,copy_dist) in zip(vocab_dists_extended, attn_dists_projected)]
 
+      def add_epsilon(dist, epsilon=sys.float_info.epsilon):
+          epsilon_mask = tf.ones_like(dist) * epsilon
+          return dist + epsilon_mask
+
+      final_dists = [add_epsilon(dist) for dist in final_dists]
+      
       return final_dists
 
   def _add_emb_vis(self, embedding_var):
